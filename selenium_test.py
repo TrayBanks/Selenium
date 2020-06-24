@@ -3,7 +3,7 @@ from selenium import webdriver
 # from selenium import webdriver
 base_url="https://www.amazon.com"
 # declare and initialize driver variable
-driver=webdriver.Chrome(executable_path=(r"C:\Users\241306\Documents\GitHub\Drivers\chromedriver.exe"))
+driver=webdriver.Chrome(r"C:\Users\241306\Documents\GitHub\webscraping\chromedriver.exe")
 driver.get('http://google.com/')
 
 # browser should be loaded in maximized window
