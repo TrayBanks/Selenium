@@ -7,5 +7,10 @@
 			"path": "..\\..\\VSCode\\GitHub\\Selenium Test\\WebDrivers"
 		}
 	],
-	"settings": {}
+	"settings": {
+
+		"python.analysis.disabled": ["too-many-function-arguments", "parameter-missing"],
+
+	},
+	"terminal.integrated.automationShell.windows": ""
 }
