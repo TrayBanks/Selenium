@@ -2,14 +2,15 @@
 	"folders": [
 		{
 			"path": "."
-		},
-		{
-			"path": "..\\..\\VSCode\\GitHub\\Selenium Test\\WebDrivers"
 		}
 	],
 	"settings": {
 
-		"python.analysis.disabled": ["too-many-function-arguments", "parameter-missing"],
+		"python.analysis.disabled": [
+			"too-many-function-arguments",
+			"parameter-missing"
+		],
+		"python.pythonPath": "C:\\Users\\241306\\Miniconda3\\envs\\myenv\\python.exe",
 
 	},
 	"terminal.integrated.automationShell.windows": ""

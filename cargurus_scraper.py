@@ -1,9 +1,12 @@
 #########################################################
+import pandas as pd
+import warnings
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import pandas
 import time
 import os
+import csv
 
 chromedriver = "chromedriver.exe"
 os.environ["webdriver.chrome.driver"] = chromedriver
@@ -14,17 +17,21 @@ driver = webdriver.Chrome(chromedriver)
 
 #########################################################
 zipcode = 75243
-pages = 100
+pages = 27
 data_name = "NewTyperPrices"
 #########################################################
-link = "https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?sourceContext=carGurusHomePage_false_0&formSourceTag=112&newSearchFromOverviewPage=true&inventorySearchWidgetType=AUTO&entitySelectingHelper.selectedEntity=&entitySelectingHelper.selectedEntity2=&zip={}&distance=100&searchChanged=true&modelChanged=true&filtersModified=true".format(zipcode)
+link = "https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?sourceContext=carGurusHomePage_false_0&formSourceTag=112&newSearchFromOverviewPage=true&inventorySearchWidgetType=AUTO&entitySelectingHelper.selectedEntity=&entitySelectingHelper.selectedEntity2=&zip={}&distance=100&searchChanged=true&modelChanged=true&filtersModified=true".format(
+	zipcode)
+driver.maximize_window()
 driver.get(link)
+
 raw_data = "_data/_{}_raw.csv".format(data_name)
 clean_data = "_data/_{}_clean.csv".format(data_name)
 
-print("\n ** ready to extract data from: {}...{}".format(link[:20], link[-20:]))
-print("\n ** pages processing: {}".format(pages))
 
+print(
+	"\n ** ready to extract data from: {}...{}".format(link[:20], link[-20:]))
+print("\n ** pages processing: {}".format(pages))
 
 
 data = []
@@ -44,7 +51,13 @@ for i in range(pages):
 
 	for car in cars:
 		row = {}
-		title = car.find_all("h4", {"class":"cg-dealFinder-result-model"})
+		#title = car.find_all("h4", {"class":"cg-dealFinder-result-model"})
+   		#Selector path cargurus-listing-search > div:nth-child(1) > div > div.FwdiZf > div._5K96zi._3QziWR > div._3LnDeD > div:nth-child(1) > div > a > div._4yP575._2PDkfp > div > div._4BPaqe > h4
+		#JS PATH document.querySelector("#cargurus-listing-search > div:nth-child(1) > div > div.FwdiZf > div._5K96zi._3QziWR > div._3LnDeD > div:nth-child(1) > div > a > div._4yP575._2PDkfp > div > div._4BPaqe > h4")
+		#xpath //*[@id="cargurus-listing-search"]/div[1]/div/div[2]/div[2]/div[4]/div[1]/div/a/div[3]/div/div[1]/h4
+		title = car.find_element_by_xpath('//*[@id="cargurus-listing-search"]')
+		CarTitle = title.text
+		print(CarTitle)
 		info = car.find_all("div", {"class":"cg-dealFinder-result-stats"})
 		deal = car.find_all("div", {"class":"cg-dealFinder-result-deal" })
 
@@ -54,8 +67,8 @@ for i in range(pages):
 			row["mileage"] = item.find_all("p")[1].text
 			row["address"] = item.find_all("span",{"class":"cg-dealFinder-result-stats-distance"})[0].text
 			row["dealer_rating"] = str(item.find_all("span", {"class": "cg-dealFinder-result-sellerRatingValue"})[0])
-			
-		for item in title:
+   
+		for item in title:	
 			row["year"] = title[0].text
 			row["make"] = title[0].text
 		
@@ -71,10 +84,20 @@ for i in range(pages):
 	assert "CarGurus" in driver.title
 
 driver.close()
+
+
 df = pandas.DataFrame(data)
 df.to_csv(raw_data, encoding="ascii")
+
+
+# creating csv
+# outfile = open(raw_data,"w",newline='')
+# writer = csv.writer(outfile)
+
 print("\n ** data extraction success!")
 print("\n ** raw data added: {}".format(raw_data))
+
+# storing data in csv file
 
 
 # coding: utf-8
@@ -87,28 +110,30 @@ print("\n ** raw data added: {}".format(raw_data))
 
 #########################################################
 
-import warnings
 warnings.filterwarnings("ignore")
 
-import pandas as pd
- 
+
 data = pd.read_csv(raw_data)
 print("\n ** starting cleaning data: {}".format(raw_data))
 time.sleep(3)
 
+
 def remove_dollar_and_comma(string):
-    string = string.replace("$","")
-    string = string.replace(",","")
-    return string
+	string = string.replace("$", "")
+	string = string.replace(",", "")
+	return string
+
 
 def star_counter(string):
-    num = 5 - string.count("star_disabled") - 0.5 * string.count("star_half")
-    return num
+	num = 5 - string.count("star_disabled") - 0.5 * string.count("star_half")
+	return num
+
 
 def print_finish_message(cleanee):
-    message = "\n finished cleaning \"{}\"".format(cleanee)
-    print(message)
-    time.sleep(1)
+	message = "\n finished cleaning \"{}\"".format(cleanee)
+	print(message)
+	time.sleep(1)
+
 
 # extract year from title
 data["year"] = data["year"].str[:4]
@@ -116,52 +141,79 @@ data["year"] = data["year"].astype("int")
 print_finish_message("year")
 
 # extract price
+
+
 def price_clean(price):
-    price = price.split()[0]
-    price = remove_dollar_and_comma(price)
-    return price
+	price = price.split()[0]
+	price = remove_dollar_and_comma(price)
+	return price
+
+
 data["price"] = data["price"].apply(price_clean).astype("int")
 print_finish_message("price")
 
 # extract market_price
+
+
 def market_price_clean(market_price):
-    market_price = market_price[market_price.index("$"):] 
-    market_price = remove_dollar_and_comma(market_price)
-    return market_price
-data["market_price"] = data["market_price"].apply(market_price_clean).astype("int")
+	market_price = market_price[market_price.index("$"):]
+	market_price = remove_dollar_and_comma(market_price)
+	return market_price
+
+
+data["market_price"] = data["market_price"].apply(
+	market_price_clean).astype("int")
 print_finish_message("market_price")
 
 # extract mileage
+
+
 def mileage_clean(mileage):
-    mileage = mileage[mileage.index(" ")+1:]
-    mileage = mileage[:mileage.index(" ")]
-    mileage = mileage.replace(",","")
-    return(mileage)
+	mileage = mileage[mileage.index(" ")+1:]
+	mileage = mileage[:mileage.index(" ")]
+	mileage = mileage.replace(",", "")
+	return(mileage)
+
+
 data["mileage"] = data["mileage"].apply(mileage_clean).astype("int")
 print_finish_message("mileage")
 
 # extract make
+
+
 def make_clean(make):
-    make = make.split()[1]
-    if make == "Land":
-        make = "Land Rover"
-    return make
+	make = make.split()[1]
+	if make == "Land":
+		make = "Land Rover"
+	return make
+
+
 data["make"] = data["make"].apply(make_clean).astype("str")
 print_finish_message("make")
 
 # calculate rating
+
+
 def dealer_rating_clean(dealer_rating):
-    return star_counter(dealer_rating)
-data["dealer_rating"] = data["dealer_rating"].apply(dealer_rating_clean).astype("float")
+	return star_counter(dealer_rating)
+
+
+data["dealer_rating"] = data["dealer_rating"].apply(
+	dealer_rating_clean).astype("float")
 print_finish_message("dealer_rating")
-    
+
 # extract days_listed
+
+
 def days_listed_clean(days_listed):
-    days_listed = days_listed.split()[0]
-    if days_listed == "<":
-        days_listed = 1
-    return days_listed
-data["days_listed"] = data["days_listed"].apply(days_listed_clean).astype("int")
+	days_listed = days_listed.split()[0]
+	if days_listed == "<":
+		days_listed = 1
+	return days_listed
+
+
+data["days_listed"] = data["days_listed"].apply(
+	days_listed_clean).astype("int")
 print_finish_message("days_listed")
 
 # create column state
@@ -173,17 +225,18 @@ address = data["address"]
 state = data["state"]
 city = data["city"]
 
-print("\n data reformatting...")    
+print("\n data reformatting...")
 for i in range(len(state)):
-    city[i] = address[i][:address[i].index(",")]
-    state[i] = address[i][address[i].index(","):]
-    state[i] = state[i].replace(", ","")
+	city[i] = address[i][:address[i].index(",")]
+	state[i] = address[i][address[i].index(","):]
+	state[i] = state[i].replace(", ", "")
 
 # remove address column
 data = data.drop("address", 1)
 
 # rearrange columns
-cols = ["year", "make", "mileage", "dealer_rating", "days_listed", "price", "market_price", "city", "state"]
+cols = ["year", "make", "mileage", "dealer_rating",
+		"days_listed", "price", "market_price", "city", "state"]
 data = data[cols]
 
 data.to_csv(clean_data)
