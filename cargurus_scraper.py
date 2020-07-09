@@ -20,8 +20,7 @@ zipcode = 75243
 pages = 27
 data_name = "NewTyperPrices"
 #########################################################
-link = "https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?sourceContext=carGurusHomePage_false_0&formSourceTag=112&newSearchFromOverviewPage=true&inventorySearchWidgetType=AUTO&entitySelectingHelper.selectedEntity=&entitySelectingHelper.selectedEntity2=&zip={}&distance=100&searchChanged=true&modelChanged=true&filtersModified=true".format(
-	zipcode)
+link = "https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?zip=75243&showNegotiable=true&sortDir=ASC&sourceContext=carGurusHomePageModel&distance=100&sortType=DEAL_SCORE&entitySelectingHelper.selectedEntity=d2568".format(zipcode)
 driver.maximize_window()
 driver.get(link)
 
@@ -47,34 +46,65 @@ for i in range(pages):
 
 	html = driver.page_source
 	soup = BeautifulSoup(html, "html.parser")
-	cars = soup.find_all("div", {"class":"ft-car cg-dealFinder-result-wrap clearfix"})
+	cars = soup.find_all("div", {"class"="_4yP575 _2PDkfp"})
+
 
 	for car in cars:
-		row = {}
-		#title = car.find_all("h4", {"class":"cg-dealFinder-result-model"})
-   		#Selector path cargurus-listing-search > div:nth-child(1) > div > div.FwdiZf > div._5K96zi._3QziWR > div._3LnDeD > div:nth-child(1) > div > a > div._4yP575._2PDkfp > div > div._4BPaqe > h4
-		#JS PATH document.querySelector("#cargurus-listing-search > div:nth-child(1) > div > div.FwdiZf > div._5K96zi._3QziWR > div._3LnDeD > div:nth-child(1) > div > a > div._4yP575._2PDkfp > div > div._4BPaqe > h4")
-		#xpath //*[@id="cargurus-listing-search"]/div[1]/div/div[2]/div[2]/div[4]/div[1]/div/a/div[3]/div/div[1]/h4
-		title = car.find_element_by_xpath('//*[@id="cargurus-listing-search"]')
-		CarTitle = title.text
-		print(CarTitle)
-		info = car.find_all("div", {"class":"cg-dealFinder-result-stats"})
-		deal = car.find_all("div", {"class":"cg-dealFinder-result-deal" })
-
-		for item in info:
-			pre_price = item.find_all("span", {"class": "cg-dealFinder-priceAndMoPayment"})[0].text
-			row["price"] = pre_price[pre_price.index("$"):] 
-			row["mileage"] = item.find_all("p")[1].text
-			row["address"] = item.find_all("span",{"class":"cg-dealFinder-result-stats-distance"})[0].text
-			row["dealer_rating"] = str(item.find_all("span", {"class": "cg-dealFinder-result-sellerRatingValue"})[0])
-   
-		for item in title:	
-			row["year"] = title[0].text
-			row["make"] = title[0].text
+     
+		name = []
+		price = []
+		miles = []
+		location = []
+		contactInfo = []
 		
-		for item in deal:
-			row["market_price"] = item.find_all("p",{"class": "cg-dealfinder-result-deal-imv"})[0].text
-			row["days_listed"] = item.find_all("p", {"class": "cg-dealfinder-result-deal-imv"})[1].text
+		# Getting the keywords section 
+		keyword_section = soup.find(class_="keywords-section")
+		# Same as: soup.select("div.article-wrapper grid row div.keywords-section")
+
+		# Getting a list of all keywords which are inserted into a keywords list in line 7.
+		name_raw = cars.find_all("class": "srp-listing-blade-title")
+		name_list = [word.get_text() for word in name_raw]
+     
+     
+     
+		name= car.find('div', attrs={'class':'_4BPaqe'})
+		price=car.find('h4', attrs={'class':'_3H76RL'})
+  		price= car.find("div", {"class":"srp-listing-blade-price"}) 
+		miles= car.find("div", {"class":"srp-listing-blade-price"}) 
+  		location= car.find("div", {"class":"srp-listing-blade-price"}) 
+
+		mileage=a.find('p', attrs={'class':'qUF2aQ'})
+		products.append(name.text)
+		prices.append(price.text)
+		ratings.append(rating.text) 
+     	df = pd.DataFrame({'Product Name':products,'Price':prices,'Rating':ratings}) 
+		df.to_csv('products.csv', index=False, encoding='utf-8')
+		
+  		# row = {}
+		# #title = car.find_all("h4", {"class":"cg-dealFinder-result-model"})
+   		# #Selector path cargurus-listing-search > div:nth-child(1) > div > div.FwdiZf > div._5K96zi._3QziWR > div._3LnDeD > div:nth-child(1) > div > a > div._4yP575._2PDkfp > div > div._4BPaqe > h4
+		# #JS PATH document.querySelector("#cargurus-listing-search > div:nth-child(1) > div > div.FwdiZf > div._5K96zi._3QziWR > div._3LnDeD > div:nth-child(1) > div > a > div._4yP575._2PDkfp > div > div._4BPaqe > h4")
+		# #xpath //*[@id="cargurus-listing-search"]/div[1]/div/div[2]/div[2]/div[4]/div[1]/div/a/div[3]/div/div[1]/h4
+		# title = car.find_element_by_xpath('//*[@id="cargurus-listing-search"]')
+		# CarTitle = title.text
+		# print(CarTitle)
+		# info = car.find_all("div", {"class":"cg-dealFinder-result-stats"})
+		# deal = car.find_all("div", {"class":"cg-dealFinder-result-deal" })
+
+		# for item in info:
+		# 	pre_price = item.find_all("span", {"class": "cg-dealFinder-priceAndMoPayment"})[0].text
+		# 	row["price"] = pre_price[pre_price.index("$"):] 
+		# 	row["mileage"] = item.find_all("p")[1].text
+		# 	row["address"] = item.find_all("span",{"class":"cg-dealFinder-result-stats-distance"})[0].text
+		# 	row["dealer_rating"] = str(item.find_all("span", {"class": "cg-dealFinder-result-sellerRatingValue"})[0])
+   
+		# for item in title:	
+		# 	row["year"] = title[0].text
+		# 	row["make"] = title[0].text
+		
+		# for item in deal:
+		# 	row["market_price"] = item.find_all("p",{"class": "cg-dealfinder-result-deal-imv"})[0].text
+		# 	row["days_listed"] = item.find_all("p", {"class": "cg-dealfinder-result-deal-imv"})[1].text
 		
 		data.append(row)
 
